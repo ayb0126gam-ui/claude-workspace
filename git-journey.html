@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jerome의 Git 여정</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      line-height: 1.65;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid #334155;
+      padding: 48px 24px 44px;
+      text-align: center;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 13px;
+      margin-bottom: 24px;
+      transition: color .2s;
+    }
+    .back-link:hover { color: #94a3b8; }
+    .page-header h1 {
+      font-size: clamp(26px, 5vw, 44px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #e879f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .page-header p { color: #94a3b8; font-size: 15px; max-width: 500px; margin: 0 auto; }
+
+    /* ── Layout ── */
+    .section { max-width: 1000px; margin: 0 auto; padding: 56px 24px; }
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px; height: 22px;
+      background: linear-gradient(180deg, #38bdf8, #818cf8);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .divider { border: none; border-top: 1px solid #1e293b; }
+
+    /* ── Graph ── */
+    .graph-wrap {
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      padding: 28px 24px 24px;
+      overflow-x: auto;
+    }
+    .graph-legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #94a3b8; }
+    .legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── Concept Cards ── */
+    .concepts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .concept-card {
+      background: #1e293b;
+      border-radius: 14px;
+      border: 1px solid #334155;
+      padding: 22px;
+      transition: transform .2s, border-color .2s;
+    }
+    .concept-card:hover { transform: translateY(-3px); border-color: #475569; }
+    .concept-icon { font-size: 26px; margin-bottom: 12px; }
+    .concept-title { font-size: 16px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
+    .concept-cmd {
+      font-family: 'Courier New', monospace;
+      font-size: 11.5px;
+      background: #0f172a;
+      color: #38bdf8;
+      padding: 5px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    .concept-desc { font-size: 13px; color: #94a3b8; line-height: 1.7; }
+
+    /* ── Conflict box ── */
+    .conflict-box {
+      background: #1e293b;
+      border-radius: 14px;
+      border: 1px solid #334155;
+      padding: 28px;
+    }
+    .conflict-item {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 18px;
+      border-left: 3px solid #f59e0b;
+      margin-bottom: 14px;
+    }
+    .conflict-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #f59e0b;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .conflict-sides {
+      display: grid;
+      grid-template-columns: 1fr 28px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .conflict-side { }
+    .cs-branch { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; letter-spacing: .5px; }
+    .cs-code { font-family: monospace; font-size: 11.5px; color: #94a3b8; }
+    .conflict-arrow { text-align: center; color: #475569; font-size: 16px; }
+    .conflict-resolve { margin-top: 10px; font-size: 12px; color: #64748b; }
+
+    /* ── Why no conflict ── */
+    .three-cols {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .col-box {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+    .col-box-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+    .col-box-body { font-size: 13px; color: #e2e8f0; }
+    .col-box-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+
+    /* ── Cheatsheet ── */
+    .cheatsheet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+    }
+    .cheat-item {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 12px 14px;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .cheat-cmd { font-family: monospace; font-size: 12px; color: #38bdf8; background: #0f172a; padding: 4px 9px; border-radius: 5px; }
+    .cheat-desc { font-size: 12px; color: #64748b; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: #475569;
+      font-size: 13px;
+      border-top: 1px solid #1e293b;
+    }
+
+    @media (max-width: 600px) {
+      .three-cols { grid-template-columns: 1fr; }
+      .conflict-sides { grid-template-columns: 1fr; }
+      .conflict-arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="page-header">
+  <a href="index.html" class="back-link">&#8592; 포트폴리오로 돌아가기</a>
+  <h1>Jerome의 Git 여정</h1>
+  <p>포트폴리오를 만들면서 직접 경험한 Git 핵심 개념 시각화</p>
+</div>
+
+<!-- ── Git Graph ── -->
+<div class="section">
+  <div class="section-title">커밋 그래프 — 이 프로젝트의 전체 타임라인</div>
+  <div class="graph-wrap">
+    <div class="graph-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#818cf8"></div>master (메인)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div>dark-mode 브랜치</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f472b6"></div>design/cute-font 브랜치</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div>revert (되돌리기)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b; border:2px solid #f59e0b;"></div>HEAD (현재)</div>
+    </div>
+
+    <svg viewBox="0 0 1080 210" style="width:100%;min-width:680px;height:auto" xmlns="http://www.w3.org/2000/svg">
+      <!-- master line -->
+      <line x1="50" y1="50" x2="1050" y2="50" stroke="#334155" stroke-width="2"/>
+
+      <!-- dark-mode branch lines -->
+      <path d="M 200 50 C 220 50 225 60 230 75 L 280 120" stroke="#34d399" stroke-width="2" fill="none" stroke-dasharray="none"/>
+      <line x1="280" y1="120" x2="390" y2="120" stroke="#34d399" stroke-width="2"/>
+      <path d="M 390 120 L 445 75 C 450 60 455 50 470 50" stroke="#34d399" stroke-width="2" fill="none"/>
+
+      <!-- cute-font branch lines -->
+      <path d="M 560 50 C 580 50 585 60 590 80 L 600 165" stroke="#f472b6" stroke-width="2" fill="none"/>
+      <line x1="600" y1="165" x2="660" y2="165" stroke="#f472b6" stroke-width="2"/>
+      <path d="M 660 165 L 688 80 C 692 60 698 50 715 50" stroke="#f472b6" stroke-width="2" fill="none"/>
+
+      <!-- ── master commits ── -->
+      <!-- 1 Initial -->
+      <circle cx="50" cy="50" r="8" fill="#818cf8" stroke="#0f172a" stroke-width="2.5"/>
+      <text x="50" y="34" text-anchor="middle" fill="#94a3b8" font-size="8.5" font-family="monospace">Initial</text>
+
+      <!-- 2 Jerome Ko -->
+      <circle cx="130" cy="50" r="7" fill="#818cf8" stroke="#0f172a" stroke-width="2"/>
+      <text x="130" y="34" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">Jerome Ko</text>
+
+      <!-- 3 Profile (branch point for dark-mode) -->
+      <circle cx="200" cy="50" r="7" fill="#818cf8" stroke="#0f172a" stroke-width="2"/>
+      <text x="200" y="34" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">Profile</text>
+
+      <!-- 4 Merge dark-mode (diamond) -->
+      <polygon points="470,38 484,50 470,62 456,50" fill="#818cf8" stroke="#0f172a" stroke-width="2"/>
+      <text x="470" y="28" text-anchor="middle" fill="#818cf8" font-size="8" font-family="monospace">Merge</text>
+      <text x="470" y="19" text-anchor="middle" fill="#818cf8" font-size="8" font-family="monospace">dark-mode</text>
+
+      <!-- 5 Avatar (branch point for cute-font) -->
+      <circle cx="560" cy="50" r="7" fill="#818cf8" stroke="#0f172a" stroke-width="2"/>
+      <text x="560" y="34" text-anchor="middle" fill="#94a3b8" font-size="8" font-family="monospace">Avatar</text>
+
+      <!-- 6 Merge cute-font (diamond) -->
+      <polygon points="715,38 729,50 715,62 701,50" fill="#818cf8" stroke="#0f172a" stroke-width="2"/>
+      <text x="715" y="28" text-anchor="middle" fill="#818cf8" font-size="8" font-family="monospace">Merge</text>
+      <text x="715" y="19" text-anchor="middle" fill="#818cf8" font-size="8" font-family="monospace">cute-font</text>
+
+      <!-- 7 revert to initial -->
+      <circle cx="780" cy="50" r="7" fill="#fb923c" stroke="#0f172a" stroke-width="2"/>
+      <text x="780" y="34" text-anchor="middle" fill="#fb923c" font-size="8" font-family="monospace">revert</text>
+
+      <!-- 8 restore pink -->
+      <circle cx="830" cy="50" r="7" fill="#fb923c" stroke="#0f172a" stroke-width="2"/>
+      <text x="830" y="34" text-anchor="middle" fill="#fb923c" font-size="8" font-family="monospace">restore</text>
+
+      <!-- 9 revert again -->
+      <circle cx="880" cy="50" r="7" fill="#fb923c" stroke="#0f172a" stroke-width="2"/>
+      <text x="880" y="34" text-anchor="middle" fill="#fb923c" font-size="8" font-family="monospace">revert</text>
+
+      <!-- 10 Vercel -->
+      <circle cx="940" cy="50" r="7" fill="#60a5fa" stroke="#0f172a" stroke-width="2"/>
+      <text x="940" y="34" text-anchor="middle" fill="#60a5fa" font-size="8" font-family="monospace">Vercel</text>
+
+      <!-- 11 restore dark-mode state (HEAD) -->
+      <circle cx="1000" cy="50" r="9" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+      <circle cx="1000" cy="50" r="5" fill="#f59e0b"/>
+      <text x="1000" y="34" text-anchor="middle" fill="#f59e0b" font-size="8" font-family="monospace">restore</text>
+      <text x="1000" y="70" text-anchor="middle" fill="#f59e0b" font-size="9" font-family="monospace">HEAD</text>
+
+      <!-- ── dark-mode commits ── -->
+      <circle cx="280" cy="120" r="7" fill="#34d399" stroke="#0f172a" stroke-width="2"/>
+      <text x="280" y="107" text-anchor="middle" fill="#34d399" font-size="8" font-family="monospace">dark colors</text>
+
+      <circle cx="390" cy="120" r="7" fill="#34d399" stroke="#0f172a" stroke-width="2"/>
+      <text x="390" y="107" text-anchor="middle" fill="#34d399" font-size="8" font-family="monospace">+ toggle</text>
+
+      <!-- dark-mode label -->
+      <text x="335" y="143" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">dark-mode branch</text>
+
+      <!-- ── cute-font commits ── -->
+      <circle cx="600" cy="165" r="7" fill="#f472b6" stroke="#0f172a" stroke-width="2"/>
+      <text x="600" y="153" text-anchor="middle" fill="#f472b6" font-size="8" font-family="monospace">fonts</text>
+
+      <circle cx="660" cy="165" r="7" fill="#f472b6" stroke="#0f172a" stroke-width="2"/>
+      <text x="660" y="153" text-anchor="middle" fill="#f472b6" font-size="8" font-family="monospace">pink hero</text>
+
+      <!-- cute-font label -->
+      <text x="630" y="188" text-anchor="middle" fill="#f472b6" font-size="10" font-family="monospace">design/cute-font branch</text>
+
+      <!-- ── conflict marker ── -->
+      <text x="470" y="88" text-anchor="middle" fill="#f59e0b" font-size="9" font-family="monospace">⚔️ 충돌 3건</text>
+      <text x="470" y="99" text-anchor="middle" fill="#f59e0b" font-size="8" font-family="monospace">수동 해결</text>
+    </svg>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ── 핵심 개념 ── -->
+<div class="section">
+  <div class="section-title">핵심 개념 6가지</div>
+  <div class="concepts-grid">
+
+    <div class="concept-card">
+      <div class="concept-icon">📸</div>
+      <div class="concept-title">commit — 스냅샷 저장</div>
+      <code class="concept-cmd">git commit -m "메시지"</code>
+      <div class="concept-desc">작업 내용을 타임라인에 기록. 한 번 커밋하면 언제든 그 시점으로 돌아올 수 있다. 사진 찍듯이 그 순간의 파일 상태를 저장하는 개념.</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-icon">☁️</div>
+      <div class="concept-title">push — GitHub에 올리기</div>
+      <code class="concept-cmd">git push origin master</code>
+      <div class="concept-desc">로컬(내 컴퓨터) 커밋을 원격(GitHub)으로 업로드. push 전까지는 내 컴퓨터에만 존재하고 GitHub에는 반영되지 않는다.</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-icon">🌿</div>
+      <div class="concept-title">branch — 실험 공간</div>
+      <code class="concept-cmd">git checkout -b 이름</code>
+      <div class="concept-desc">master를 건드리지 않고 새 기능을 실험하는 평행 우주. 이 프로젝트에서는 dark-mode 브랜치와 design/cute-font 브랜치를 만들었다.</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-icon">🔀</div>
+      <div class="concept-title">merge — 합치기</div>
+      <code class="concept-cmd">git merge 브랜치명</code>
+      <div class="concept-desc">브랜치 작업 내용을 master에 합치는 과정. 다른 줄을 수정했으면 자동 합산, 같은 줄이면 충돌 발생.</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-icon">⚔️</div>
+      <div class="concept-title">conflict — 충돌</div>
+      <code class="concept-cmd">수동 해결 후 git commit</code>
+      <div class="concept-desc">두 브랜치가 같은 줄을 다르게 수정했을 때 발생. Git이 어느 쪽이 맞는지 모르기 때문에 직접 선택해야 한다. 이 프로젝트에서 3곳 충돌 해결.</div>
+    </div>
+
+    <div class="concept-card">
+      <div class="concept-icon">⏪</div>
+      <div class="concept-title">revert / checkout — 되돌리기</div>
+      <code class="concept-cmd">git revert HEAD</code>
+      <div class="concept-desc">push한 커밋은 revert(취소 커밋 추가), push 전이면 reset 사용. checkout은 과거를 보기만 할 때. 기록은 항상 보존된다.</div>
+    </div>
+
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ── 충돌 해결 ── -->
+<div class="section">
+  <div class="section-title">충돌 해결 — dark-mode 머지에서 겪은 3건</div>
+  <div class="conflict-box">
+    <p style="color:#94a3b8;font-size:13.5px;margin-bottom:22px;">dark-mode 브랜치를 master에 머지할 때 3군데에서 충돌이 발생했다. 양쪽이 같은 줄을 다르게 수정했기 때문.</p>
+
+    <div class="conflict-item">
+      <div class="conflict-label">충돌 1 — CSS: 애니메이션 vs 토글 스타일</div>
+      <div class="conflict-sides">
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#818cf8">master</div>
+          <div class="cs-code">히어로 이름 바운스 애니메이션 CSS</div>
+        </div>
+        <div class="conflict-arrow">→</div>
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#34d399">dark-mode</div>
+          <div class="cs-code">다크모드 토글 스위치 CSS</div>
+        </div>
+      </div>
+      <div class="conflict-resolve">✅ 해결: 둘 다 유지</div>
+    </div>
+
+    <div class="conflict-item">
+      <div class="conflict-label">충돌 2 — HTML: 프로필 이미지 vs 이모지 아바타</div>
+      <div class="conflict-sides">
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#818cf8">master</div>
+          <div class="cs-code">DiceBear 이미지 + Jerome Ko</div>
+        </div>
+        <div class="conflict-arrow">→</div>
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#34d399">dark-mode</div>
+          <div class="cs-code">이모지 아바타 + 김수민</div>
+        </div>
+      </div>
+      <div class="conflict-resolve">✅ 해결: DiceBear 이미지 + Jerome Ko 선택</div>
+    </div>
+
+    <div class="conflict-item" style="margin-bottom:0">
+      <div class="conflict-label">충돌 3 — JS: 이름 애니메이션 vs 토글 스크립트</div>
+      <div class="conflict-sides">
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#818cf8">master</div>
+          <div class="cs-code">이름 per-letter 바운스 JS</div>
+        </div>
+        <div class="conflict-arrow">→</div>
+        <div class="conflict-side">
+          <div class="cs-branch" style="color:#34d399">dark-mode</div>
+          <div class="cs-code">다크모드 토글 + localStorage JS</div>
+        </div>
+      </div>
+      <div class="conflict-resolve">✅ 해결: 둘 다 유지</div>
+    </div>
+
+    <div style="margin-top:20px;padding:14px;background:#0f172a;border-radius:8px;font-size:13px;color:#94a3b8;border:1px solid #334155;">
+      💡 <strong style="color:#e2e8f0;">핵심 원리:</strong> Git은 "공통 조상"과 비교해 판단한다. 한쪽만 바꿨으면 자동 채택. 양쪽이 <em>같은 줄</em>을 다르게 바꿨을 때만 충돌.
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ── Why no conflict ── -->
+<div class="section">
+  <div class="section-title">왜 cute-font 머지는 충돌이 없었을까?</div>
+  <div style="background:#1e293b;border-radius:14px;border:1px solid #334155;padding:28px;">
+    <div class="three-cols">
+      <div class="col-box">
+        <div class="col-box-title" style="color:#64748b">공통 조상 (분기점)</div>
+        <div class="col-box-body">히어로 색 = 초록(teal)</div>
+      </div>
+      <div class="col-box">
+        <div class="col-box-title" style="color:#818cf8">master</div>
+        <div class="col-box-body">초록 그대로 ✓</div>
+        <div class="col-box-sub">이 줄 안 건드림</div>
+      </div>
+      <div class="col-box">
+        <div class="col-box-title" style="color:#f472b6">design/cute-font</div>
+        <div class="col-box-body">핑크로 변경 🌸</div>
+        <div class="col-box-sub">이 줄 수정함</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:14px;color:#94a3b8;">
+      → 한쪽(cute-font)만 변경했으므로 Git이 자동으로 핑크를 채택. 충돌 없음.
+    </div>
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="background:#0f172a;border-radius:8px;padding:14px;border-left:3px solid #34d399;">
+        <div style="font-size:11px;font-weight:700;color:#34d399;margin-bottom:6px;">충돌 없는 경우</div>
+        <div style="font-size:12px;color:#94a3b8;">한쪽만 수정 → Git이 자동 채택</div>
+      </div>
+      <div style="background:#0f172a;border-radius:8px;padding:14px;border-left:3px solid #f59e0b;">
+        <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:6px;">충돌 발생하는 경우</div>
+        <div style="font-size:12px;color:#94a3b8;">양쪽이 같은 줄을 다르게 수정 → 직접 선택</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- ── Cheatsheet ── -->
+<div class="section">
+  <div class="section-title">Git 명령어 치트시트</div>
+  <div class="cheatsheet-grid">
+    <div class="cheat-item"><code class="cheat-cmd">git log --oneline</code><span class="cheat-desc">커밋 목록 한 줄씩 보기</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git status</code><span class="cheat-desc">현재 변경사항 확인</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git add -A</code><span class="cheat-desc">모든 변경사항 스테이징</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git commit -m "메시지"</code><span class="cheat-desc">커밋 생성</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git push origin master</code><span class="cheat-desc">GitHub에 업로드</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git checkout -b 이름</code><span class="cheat-desc">새 브랜치 생성 및 이동</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git checkout master</code><span class="cheat-desc">master 브랜치로 이동</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git merge 브랜치명</code><span class="cheat-desc">브랜치를 현재 브랜치에 합치기</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git checkout 해시 -- .</code><span class="cheat-desc">특정 커밋 파일 상태로 복원</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git revert HEAD</code><span class="cheat-desc">마지막 커밋 취소 (안전, push 후)</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git checkout 해시</code><span class="cheat-desc">과거 상태 보기만 (방문)</span></div>
+    <div class="cheat-item"><code class="cheat-cmd">git branch</code><span class="cheat-desc">브랜치 목록 보기</span></div>
+  </div>
+</div>
+
+<footer>
+  <p>Jerome Ko · Git 학습 기록 · 2026</p>
+  <p style="margin-top:10px;"><a href="index.html" style="color:#38bdf8;text-decoration:none;">&#8592; 포트폴리오로 돌아가기</a></p>
+</footer>
+
+</body>
+</html>
