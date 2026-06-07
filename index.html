@@ -371,6 +371,62 @@
     [data-theme="dark"] .toggle-thumb { transform: translateX(19px); }
     .toggle-icon { font-size: 15px; line-height: 1; }
 
+    /* ── Guestbook ── */
+    #guestbook { background: var(--bg); }
+    .gb-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+    .gb-field { margin-bottom: 14px; }
+    .gb-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+    .gb-input, .gb-textarea {
+      width: 100%;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color .18s;
+      outline: none;
+    }
+    .gb-input:focus, .gb-textarea:focus { border-color: var(--teal); }
+    .gb-textarea { resize: vertical; min-height: 110px; }
+    .gb-btn {
+      background: var(--teal);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .18s;
+      font-family: inherit;
+    }
+    .gb-btn:hover { opacity: .85; }
+    .gb-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .gb-status { font-size: 13px; margin-top: 10px; min-height: 18px; }
+    .gb-status.ok  { color: #10b981; }
+    .gb-status.err { color: #ef4444; }
+    .gb-list { display: flex; flex-direction: column; gap: 12px; max-height: 500px; overflow-y: auto; }
+    .gb-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      transition: box-shadow .18s;
+    }
+    .gb-card:hover { box-shadow: var(--shadow); }
+    .gb-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 8px; }
+    .gb-name { font-weight: 700; font-size: 14px; color: var(--teal); }
+    .gb-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .gb-content { font-size: 14px; color: var(--text-body, var(--text)); line-height: 1.65; word-break: break-word; }
+    .gb-empty, .gb-loading { color: var(--text-muted); font-size: 14px; text-align: center; padding: 36px 0; }
+
     /* ── Responsive ── */
     @media (max-width: 600px) {
       .weather-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -380,8 +436,10 @@
       .hero        { padding: 56px 20px 68px; }
       .career-card { padding: 20px; }
       .contact-wrap { padding: 32px 20px; }
+      .gb-wrap     { grid-template-columns: 1fr; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -428,6 +486,7 @@
     <a href="#career">경력</a>
     <a href="#skills">스킬</a>
     <a href="#contact">연락처</a>
+    <a href="#guestbook">방명록</a>
     <a href="git-journey.html" style="color:var(--teal);font-weight:700;">Git 여정 ↗</a>
   </div>
   <button class="theme-toggle" id="themeToggle" title="다크/라이트 모드 전환">
@@ -617,6 +676,37 @@
   </div>
 </section>
 
+<!-- ── Guestbook ── -->
+<section id="guestbook">
+  <div class="container">
+    <div class="section-title">방명록</div>
+    <div class="gb-wrap">
+
+      <!-- 작성 폼 -->
+      <div>
+        <div class="gb-field">
+          <label class="gb-label" for="gb-name">이름</label>
+          <input class="gb-input" id="gb-name" type="text" placeholder="이름을 입력하세요" maxlength="20" autocomplete="off">
+        </div>
+        <div class="gb-field">
+          <label class="gb-label" for="gb-content">메시지</label>
+          <textarea class="gb-textarea" id="gb-content" placeholder="메시지를 남겨주세요 (최대 300자)" maxlength="300"></textarea>
+        </div>
+        <button class="gb-btn" id="gb-submit">남기기</button>
+        <div class="gb-status" id="gb-status"></div>
+      </div>
+
+      <!-- 메시지 목록 -->
+      <div class="gb-list" id="gb-list">
+        <div class="gb-loading">불러오는 중...</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
 <!-- ── Footer ── -->
 <footer>
   <p>&copy; 2026 <span>Jerome Ko</span> &middot; 서울특별시 마포구</p>
@@ -653,6 +743,71 @@
     localStorage.setItem('theme', next);
     icon.textContent = next === 'dark' ? '☀️' : '🌙';
   });
+</script>
+
+<script>
+/* ── Guestbook (Supabase) ── */
+(function () {
+  /* anon key: 클라이언트용 공개 키, RLS로 보호됨 */
+  const SB_URL = 'https://hbrachrdrrdjhvyheckm.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhicmFjaHJkcnJkamh2eWhlY2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3Njg0MjMsImV4cCI6MjA5NjM0NDQyM30.cmU2SEkesVi7smwhNrHwlADHXA_GOPtbAWHlpgH6Ycg';
+  const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+  const list    = document.getElementById('gb-list');
+  const nameEl  = document.getElementById('gb-name');
+  const msgEl   = document.getElementById('gb-content');
+  const btn     = document.getElementById('gb-submit');
+  const status  = document.getElementById('gb-status');
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmt(iso) {
+    const d = new Date(iso);
+    return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  async function load() {
+    const { data, error } = await sb.from('messages').select('*').order('created_at', { ascending: false });
+    if (error) { list.innerHTML = '<div class="gb-empty">메시지를 불러올 수 없습니다</div>'; return; }
+    if (!data.length) { list.innerHTML = '<div class="gb-empty">아직 메시지가 없어요. 첫 번째로 남겨보세요! 🙌</div>'; return; }
+    list.innerHTML = data.map(m => `
+      <div class="gb-card">
+        <div class="gb-card-header">
+          <span class="gb-name">${esc(m.name)}</span>
+          <span class="gb-time">${fmt(m.created_at)}</span>
+        </div>
+        <div class="gb-content">${esc(m.content)}</div>
+      </div>`).join('');
+  }
+
+  btn.addEventListener('click', async () => {
+    const name    = nameEl.value.trim();
+    const content = msgEl.value.trim();
+    if (!name)    { status.textContent = '이름을 입력해주세요'; status.className = 'gb-status err'; return; }
+    if (!content) { status.textContent = '메시지를 입력해주세요'; status.className = 'gb-status err'; return; }
+
+    btn.disabled = true;
+    status.textContent = '저장 중...';
+    status.className = 'gb-status';
+
+    const { error } = await sb.from('messages').insert({ name, content });
+    if (error) {
+      status.textContent = '저장 실패. 다시 시도해주세요.';
+      status.className = 'gb-status err';
+    } else {
+      nameEl.value = '';
+      msgEl.value  = '';
+      status.textContent = '✓ 메시지가 등록됐습니다!';
+      status.className = 'gb-status ok';
+      await load();
+    }
+    btn.disabled = false;
+  });
+
+  load();
+})();
 </script>
 </body>
 </html>
