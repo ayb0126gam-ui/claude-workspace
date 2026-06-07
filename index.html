@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>김수민 — Marketing Specialist</title>
+  <style>
+    :root {
+      --teal: #00897B;
+      --teal-dark: #00695C;
+      --teal-light: #E0F2F1;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --border: #e5e7eb;
+      --shadow: 0 2px 16px rgba(0,0,0,0.07);
+      --radius: 14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo',
+                   'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    /* ── Weather Bar ── */
+    .weather-bar {
+      background: #0f172a;
+      color: #cbd5e1;
+      padding: 9px 28px;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      border-bottom: 1px solid #1e293b;
+    }
+    .wb-left { display: flex; align-items: center; gap: 6px; }
+    .wb-location {
+      font-weight: 700;
+      color: #5eead4;
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+    .wb-dot { color: #334155; }
+    .wb-items { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .wb-item { display: flex; align-items: center; gap: 5px; }
+    .wb-label { color: #64748b; font-size: 11px; }
+    .wb-value { font-weight: 600; color: #e2e8f0; }
+    .wb-sub { color: #64748b; font-size: 11px; }
+    .wb-badge {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .wb-badge.good   { background: rgba(16,185,129,.18); color: #6ee7b7; }
+    .wb-badge.normal { background: rgba(245,158,11,.18);  color: #fcd34d; }
+    .wb-badge.bad    { background: rgba(239,68,68,.18);   color: #fca5a5; }
+    .wb-time { color: #475569; font-size: 11px; white-space: nowrap; }
+
+    /* ── Nav ── */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 54px;
+      position: sticky;
+      top: 38px;
+      z-index: 100;
+    }
+    .nav-logo { font-weight: 800; color: var(--teal); font-size: 17px; letter-spacing: -0.5px; }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .18s;
+    }
+    .nav-links a:hover { color: var(--teal); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(140deg, #00695C 0%, #00897B 55%, #26C6DA 100%);
+      color: white;
+      padding: 76px 28px 88px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+    }
+    .hero-blob.b1 { width: 480px; height: 480px; top: -180px; left: -120px; }
+    .hero-blob.b2 { width: 360px; height: 360px; bottom: -140px; right: -80px; }
+
+    .hero-avatar {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.22);
+      border: 3px solid rgba(255,255,255,.4);
+      margin: 0 auto 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      position: relative; z-index: 1;
+    }
+    .hero h1 {
+      font-size: clamp(30px, 5.5vw, 50px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      position: relative; z-index: 1;
+    }
+    .hero-subtitle {
+      font-size: 17px;
+      opacity: .88;
+      font-weight: 500;
+      margin-bottom: 14px;
+      position: relative; z-index: 1;
+    }
+    .hero-tagline {
+      font-size: 14px;
+      opacity: .72;
+      max-width: 460px;
+      margin: 0 auto 28px;
+      position: relative; z-index: 1;
+    }
+    .hero-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+    .hero-chip {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.28);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ── Container ── */
+    .container { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+
+    /* ── Section ── */
+    section { padding: 60px 0; }
+    .section-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.3px;
+    }
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px; height: 22px;
+      background: var(--teal);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Career ── */
+    .career-list { display: flex; flex-direction: column; gap: 18px; }
+    .career-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--teal);
+      transition: transform .18s, box-shadow .18s;
+    }
+    .career-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.11);
+    }
+    .career-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .career-company { font-size: 17px; font-weight: 800; }
+    .career-role { font-size: 13.5px; font-weight: 600; color: var(--teal); margin-bottom: 4px; }
+    .career-period {
+      background: var(--teal);
+      color: white;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 11px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+    .career-type { font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px; }
+    .career-bullets { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .career-bullets li {
+      font-size: 14px;
+      color: #374151;
+      padding-left: 16px;
+      position: relative;
+    }
+    .career-bullets li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-size: 11px;
+      top: 3px;
+    }
+    .career-bullets strong { color: var(--text); font-weight: 700; }
+
+    /* ── Skills ── */
+    #skills { background: var(--white); }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+    .skill-card {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 18px 20px;
+      border: 1px solid var(--border);
+    }
+    .skill-cat {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--teal);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .skill-tag {
+      background: var(--teal-light);
+      color: var(--teal-dark);
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ── Contact ── */
+    .contact-wrap {
+      background: linear-gradient(140deg, #00695C, #00897B 60%, #26C6DA);
+      border-radius: 18px;
+      padding: 44px 36px;
+      color: white;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    .contact-wrap h3 { font-size: 22px; font-weight: 800; }
+    .contact-wrap p  { opacity: .82; font-size: 14.5px; max-width: 420px; }
+    .contact-items { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .c-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 10px;
+      padding: 10px 18px;
+      text-decoration: none;
+      color: white;
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: background .18s;
+    }
+    .c-item:hover { background: rgba(255,255,255,.26); }
+    .c-icon { font-size: 16px; }
+
+    /* ── Divider ── */
+    hr.div { border: none; border-top: 1px solid var(--border); }
+
+    /* ── Footer ── */
+    footer {
+      background: #0f172a;
+      color: #475569;
+      text-align: center;
+      padding: 22px;
+      font-size: 12.5px;
+    }
+    footer span { color: var(--teal); }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .weather-bar { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .wb-items    { gap: 10px; }
+      nav          { top: auto; position: static; }
+      .nav-links   { gap: 18px; }
+      .hero        { padding: 56px 20px 68px; }
+      .career-card { padding: 20px; }
+      .contact-wrap { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Weather Bar ── -->
+<div class="weather-bar">
+  <div class="wb-left">
+    <span class="wb-location">&#128205; 서울 영등포구</span>
+    <span class="wb-dot">|</span>
+    <div class="wb-items">
+      <div class="wb-item">
+        <span class="wb-label">날씨</span>
+        <span class="wb-value">부분적으로 흐림</span>
+      </div>
+      <div class="wb-item">
+        <span class="wb-label">기온</span>
+        <span class="wb-value">19.8&#176;C</span>
+        <span class="wb-sub">(체감 19.3&#176;C)</span>
+      </div>
+      <div class="wb-item">
+        <span class="wb-label">습도</span>
+        <span class="wb-value">58%</span>
+      </div>
+      <div class="wb-item">
+        <span class="wb-label">PM2.5</span>
+        <span class="wb-badge normal">보통&nbsp;15.0</span>
+      </div>
+      <div class="wb-item">
+        <span class="wb-label">PM10</span>
+        <span class="wb-badge good">좋음&nbsp;18.7</span>
+      </div>
+      <div class="wb-item">
+        <span class="wb-label">AQI</span>
+        <span class="wb-value">61</span>
+      </div>
+    </div>
+  </div>
+  <span class="wb-time">수집: 2026-06-07 09:00</span>
+</div>
+
+<!-- ── Nav ── -->
+<nav>
+  <div class="nav-logo">KSM</div>
+  <div class="nav-links">
+    <a href="#career">경력</a>
+    <a href="#skills">스킬</a>
+    <a href="#contact">연락처</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-blob b1"></div>
+  <div class="hero-blob b2"></div>
+  <div class="hero-avatar">&#128100;</div>
+  <h1>김수민</h1>
+  <div class="hero-subtitle">Marketing Specialist</div>
+  <div class="hero-tagline">데이터 기반 퍼포먼스 마케팅 &middot; B2B SaaS 그로스 &middot; AI 콘텐츠 자동화</div>
+  <div class="hero-chips">
+    <span class="hero-chip">Google Ads</span>
+    <span class="hero-chip">SEO</span>
+    <span class="hero-chip">HubSpot</span>
+    <span class="hero-chip">GA4</span>
+    <span class="hero-chip">Python</span>
+    <span class="hero-chip">B2B SaaS</span>
+  </div>
+</div>
+
+<!-- ── Career ── -->
+<section id="career">
+  <div class="container">
+    <div class="section-title">경력사항</div>
+    <div class="career-list">
+
+      <div class="career-card">
+        <div class="career-header">
+          <div>
+            <div class="career-company">주식회사 테크노바</div>
+            <div class="career-role">마케팅 매니저</div>
+          </div>
+          <span class="career-period">2022.03 &#8211; 현재</span>
+        </div>
+        <div class="career-type">B2B SaaS 스타트업 &middot; 시리즈 A &middot; 임직원 50명</div>
+        <ul class="career-bullets">
+          <li>퍼포먼스 마케팅 총괄 &#8212; Google/Meta/Naver 광고 <strong>월 5천만원</strong> 규모 운영</li>
+          <li>유입 CPL <strong>38% 절감</strong> (6개월), 유료 전환율 2.1% &#8594; <strong>3.4%</strong> 개선</li>
+          <li>SEO 전략 수립 &#8212; 핵심 키워드 27개 10위권 진입, 오가닉 트래픽 <strong>2.3배</strong> 증가</li>
+          <li>HubSpot 기반 마케팅 자동화 워크플로우 <strong>12종 구축</strong></li>
+          <li>GA4 &middot; Amplitude &middot; Looker Studio 대시보드 구축 및 주간 리포팅 운영</li>
+        </ul>
+      </div>
+
+      <div class="career-card">
+        <div class="career-header">
+          <div>
+            <div class="career-company">주식회사 리브랜드</div>
+            <div class="career-role">마케팅 어시스턴트</div>
+          </div>
+          <span class="career-period">2019.03 &#8211; 2022.02</span>
+        </div>
+        <div class="career-type">DTC 뷰티 브랜드 &middot; 연매출 50억 규모</div>
+        <ul class="career-bullets">
+          <li>인스타그램 브랜드 계정 운영 &#8212; 팔로워 <strong>2.5만 &#8594; 12만</strong> 성장 (3년)</li>
+          <li>인플루언서 마케팅 캠페인 14건 진행, 평균 <strong>ROAS 4.2배</strong></li>
+          <li>신제품 런칭 캠페인 6건 기획&#183;집행 (시즌 한정 라인 포함)</li>
+          <li>프리랜서 디자이너 3명 오케스트레이션 및 일정 관리</li>
+        </ul>
+      </div>
+
+      <div class="career-card">
+        <div class="career-header">
+          <div>
+            <div class="career-company">프리랜서 / 1인 창업</div>
+            <div class="career-role">Growth Marketing Consultant</div>
+          </div>
+          <span class="career-period">2023 &#8211; 현재</span>
+        </div>
+        <div class="career-type">독립 컨설팅 &middot; AI 기반 마케팅 자동화 프로젝트</div>
+        <ul class="career-bullets">
+          <li>GPT-4 API 활용 블로그 초안 생성 파이프라인 설계 &#8212; 콘텐츠 산출량 <strong>3배</strong> 증가</li>
+          <li>Notion + Airtable + Zapier 캠페인 자동화, 리포팅 시간 <strong>주당 8h &#8594; 2.5h</strong> 단축</li>
+          <li>GA4 + Amplitude + BigQuery 풀퍼널 어트리뷰션 구축 &#8212; ROAS <strong>1.7배</strong> 상승</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ── Skills ── -->
+<section id="skills">
+  <div class="container">
+    <div class="section-title">보유 스킬</div>
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-cat">퍼포먼스 마케팅</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Google Ads</span>
+          <span class="skill-tag">Meta Ads</span>
+          <span class="skill-tag">Naver Search</span>
+          <span class="skill-tag">Kakao Moment</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-cat">데이터 분석</div>
+        <div class="skill-tags">
+          <span class="skill-tag">GA4</span>
+          <span class="skill-tag">Amplitude</span>
+          <span class="skill-tag">Looker Studio</span>
+          <span class="skill-tag">Tableau</span>
+          <span class="skill-tag">BigQuery</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-cat">마케팅 오토메이션</div>
+        <div class="skill-tags">
+          <span class="skill-tag">HubSpot</span>
+          <span class="skill-tag">Mailchimp</span>
+          <span class="skill-tag">Zapier</span>
+          <span class="skill-tag">Notion API</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-cat">콘텐츠 &middot; SEO</div>
+        <div class="skill-tags">
+          <span class="skill-tag">카피라이팅</span>
+          <span class="skill-tag">SEO 최적화</span>
+          <span class="skill-tag">Ahrefs</span>
+          <span class="skill-tag">Figma</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-cat">기술 역량</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Python (pandas)</span>
+          <span class="skill-tag">SQL</span>
+          <span class="skill-tag">Excel 고급</span>
+          <span class="skill-tag">OpenAI API</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-cat">자격증 &amp; 언어</div>
+        <div class="skill-tags">
+          <span class="skill-tag">Google Ads Certified</span>
+          <span class="skill-tag">GAIQ</span>
+          <span class="skill-tag">HubSpot Certified</span>
+          <span class="skill-tag">TOEIC 925</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- ── Contact ── -->
+<section id="contact">
+  <div class="container">
+    <div class="section-title">연락처</div>
+    <div class="contact-wrap">
+      <h3>함께 일해요</h3>
+      <p>B2B SaaS 그로스, 퍼포먼스 마케팅, AI 기반 콘텐츠 자동화 프로젝트에 관심 있으시다면 언제든지 연락 주세요.</p>
+      <div class="contact-items">
+        <a href="mailto:soomin.kim@example.com" class="c-item">
+          <span class="c-icon">&#9993;</span> soomin.kim@example.com
+        </a>
+        <a href="tel:010-1234-5678" class="c-item">
+          <span class="c-icon">&#128241;</span> 010-1234-5678
+        </a>
+        <a href="https://linkedin.com/in/soomin-kim" target="_blank" rel="noopener" class="c-item">
+          <span class="c-icon">&#128188;</span> LinkedIn
+        </a>
+        <a href="https://soomin.example.com" target="_blank" rel="noopener" class="c-item">
+          <span class="c-icon">&#128279;</span> Portfolio
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <p>&copy; 2026 <span>김수민</span> &middot; 서울특별시 마포구</p>
+</footer>
+
+</body>
+</html>

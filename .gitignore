@@ -1,0 +1,24 @@
+# ── 민감 정보 ──────────────────────────────
+.env
+.env.*
+*.key
+*.pem
+id_rsa*
+credentials*
+secrets*
+
+# ── 개인 문서 (업로드 금지) ─────────────────
+docs/resume.pdf
+
+# ── 자동 생성 파일 ──────────────────────────
+weather.txt
+
+# ── Claude Code 내부 데이터 ─────────────────
+.omc/
+.claude/settings.local.json
+
+# ── OS / 에디터 ─────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.bak
