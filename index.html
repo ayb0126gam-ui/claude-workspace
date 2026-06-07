@@ -322,35 +322,11 @@
   <div class="wb-left">
     <span class="wb-location">&#128205; 서울 영등포구</span>
     <span class="wb-dot">|</span>
-    <div class="wb-items">
-      <div class="wb-item">
-        <span class="wb-label">날씨</span>
-        <span class="wb-value">부분적으로 흐림</span>
-      </div>
-      <div class="wb-item">
-        <span class="wb-label">기온</span>
-        <span class="wb-value">19.8&#176;C</span>
-        <span class="wb-sub">(체감 19.3&#176;C)</span>
-      </div>
-      <div class="wb-item">
-        <span class="wb-label">습도</span>
-        <span class="wb-value">58%</span>
-      </div>
-      <div class="wb-item">
-        <span class="wb-label">PM2.5</span>
-        <span class="wb-badge normal">보통&nbsp;15.0</span>
-      </div>
-      <div class="wb-item">
-        <span class="wb-label">PM10</span>
-        <span class="wb-badge good">좋음&nbsp;18.7</span>
-      </div>
-      <div class="wb-item">
-        <span class="wb-label">AQI</span>
-        <span class="wb-value">61</span>
-      </div>
+    <div class="wb-items" id="wb-items">
+      <div class="wb-item"><span class="wb-value">날씨 불러오는 중...</span></div>
     </div>
   </div>
-  <span class="wb-time">수집: 2026-06-07 09:00</span>
+  <span class="wb-time" id="wb-time"></span>
 </div>
 
 <!-- ── Nav ── -->
@@ -547,5 +523,34 @@
   <p>&copy; 2026 <span>김수민</span> &middot; 서울특별시 마포구</p>
 </footer>
 
+<script>
+(async function loadWeather() {
+  const WMO = {0:'맑음',1:'주로 맑음',2:'부분적으로 흐림',3:'흐림',45:'안개',48:'안개',51:'이슬비',53:'이슬비',55:'이슬비',61:'비',63:'비',65:'강한 비',71:'눈',73:'눈',75:'강한 눈',80:'소나기',81:'소나기',82:'강한 소나기',95:'뇌우',96:'뇌우',99:'뇌우'};
+  function pmGrade(val, type) {
+    if (type === 'pm25') return val < 15 ? ['좋음','good'] : val < 35 ? ['보통','normal'] : val < 75 ? ['나쁨','bad'] : ['매우나쁨','very-bad'];
+    return val < 30 ? ['좋음','good'] : val < 80 ? ['보통','normal'] : val < 150 ? ['나쁨','bad'] : ['매우나쁨','very-bad'];
+  }
+  try {
+    const [wx, aq] = await Promise.all([
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=37.5264&longitude=126.8964&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m').then(r=>r.json()),
+      fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=37.5264&longitude=126.8964&current=pm10,pm2_5,us_aqi').then(r=>r.json())
+    ]);
+    const c = wx.current, a = aq.current;
+    const pm25g = pmGrade(a.pm2_5, 'pm25'), pm10g = pmGrade(a.pm10, 'pm10');
+    document.getElementById('wb-items').innerHTML = `
+      <div class="wb-item"><span class="wb-label">날씨</span><span class="wb-value">${WMO[c.weather_code]||'--'}</span></div>
+      <div class="wb-item"><span class="wb-label">기온</span><span class="wb-value">${c.temperature_2m}°C</span><span class="wb-sub">(체감 ${c.apparent_temperature}°C)</span></div>
+      <div class="wb-item"><span class="wb-label">습도</span><span class="wb-value">${c.relative_humidity_2m}%</span></div>
+      <div class="wb-item"><span class="wb-label">PM2.5</span><span class="wb-badge ${pm25g[1]}">${pm25g[0]}&nbsp;${a.pm2_5.toFixed(1)}</span></div>
+      <div class="wb-item"><span class="wb-label">PM10</span><span class="wb-badge ${pm10g[1]}">${pm10g[0]}&nbsp;${a.pm10.toFixed(1)}</span></div>
+      <div class="wb-item"><span class="wb-label">AQI</span><span class="wb-value">${a.us_aqi}</span></div>
+    `;
+    const now = new Date();
+    document.getElementById('wb-time').textContent = `수집: ${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  } catch(e) {
+    document.getElementById('wb-items').innerHTML = '<div class="wb-item"><span class="wb-value">날씨 정보를 불러올 수 없습니다</span></div>';
+  }
+})();
+</script>
 </body>
 </html>
